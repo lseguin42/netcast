@@ -43,8 +43,7 @@ angular.module('netcast', [
 
     $rootScope.Auth = Auth;
 
-    $rootScope.$on('$routeChangeStart', function (event, next) {
-      console.log('change state');
+    $rootScope.$on('$stateChangeStart', function (event, next) {
       Auth.isReadyLogged().catch(function () {
         if (next.authenticate) {
           $location.path('/');
