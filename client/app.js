@@ -39,16 +39,20 @@ angular.module('netcast', [
     };
   })
 
-  .run(function ($rootScope, $location, Auth) {
+  .run(function ($rootScope, $state, Auth) {
 
     $rootScope.Auth = Auth;
 
     $rootScope.$on('$stateChangeStart', function (event, next) {
       Auth.isReadyLogged().catch(function () {
         if (next.authenticate) {
-          $location.path('/');
+          $state.go('home');
         }
       });
+    });
+    
+    $rootScope.$on('$stateChangeError', function (event, toState, toParams, fromState, fromParams, error) {
+      return $state.go('home');
     });
 
   });
