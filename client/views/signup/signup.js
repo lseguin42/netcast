@@ -8,6 +8,6 @@ angular.module('netcast')
       	url: '/signup',
         templateUrl: 'views/signup/signup.html',
         controller: 'SignupCtrl',
-        controllerAs: 'vm'
+        controllerAs: 'vm',
       });
   });

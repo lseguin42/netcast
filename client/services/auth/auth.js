@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('netcast')
-  .service('Auth', function ($rootScope, $cookieStore, $q, $http) {
+  .service('Auth', function ($rootScope, $cookieStore, $q, $http, $state) {
 
     var _user = {};
     var _ready = $q.defer();
@@ -64,6 +64,8 @@ angular.module('netcast')
     this.logout = function () {
       $cookieStore.remove('token');
       _user = {};
+      if ($state.current.authenticate)
+        $state.go('home');
     };
 
     /**

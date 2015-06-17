@@ -1,0 +1,20 @@
+<div>
+  {{ vm.name }}
+  <table>
+  	<tr ng-repeat="contact in vm.contacts">
+  		<td>
+  			{{ contact.email }}
+  		</td>
+  		<td>
+  			{{ contact.nickname }}
+  		</td>
+  	</tr>
+  </table>
+  <form ng-submit="vm.addContact()">
+	  <input placeholder="email" ng-model="vm.contact.email" />
+	  <input placeholder="nickname" ng-model="vm.contact.nickname" />
+	  <button type="submit">
+	    add contact
+	  </button>
+  </form>
+</div>

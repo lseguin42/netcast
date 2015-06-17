@@ -1,4 +1,4 @@
-'use strict';
+   'use strict';
 
 angular.module('netcast')
   .controller('LoginCtrl', function ($location, Auth) {

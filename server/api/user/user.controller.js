@@ -5,6 +5,7 @@ var jwt = require('jsonwebtoken');
 var User = require('./user.model');
 
 function handleError (res, err) {
+  console.log(err);
   return res.status(500).send(err);
 }
 
@@ -15,6 +16,9 @@ function handleError (res, err) {
  * @param res
  */
 exports.create = function (req, res) {
+  if (req.body.contacts)
+    return handleError(res, "contacts given on signup");
+  req.body.contacts = {};
   User.create(req.body, function (err, user) {
     if (err) { return handleError(res, err); }
     var token = jwt.sign(
@@ -39,6 +43,50 @@ exports.getMe = function (req, res) {
   }, '-salt -passwordHash', function (err, user) {
     if (err) { return handleError(res, err); }
     if (!user) { return res.json(401); }
+    console.log(user);
     res.status(200).json(user);
   });
+};
+
+exports.createContact = function (req, res) {
+  var user = req.user;
+  var contact = req.body;
+
+  try {
+    user.addContact(contact);
+    res.status(200).json({ success: true });
+  } catch (e) {
+    handleError(res, e);
+  }
+};
+
+exports.updateContact = function (req, res) {
+  var user = req.user;
+  var email = req.params.email;
+  var contact = req.body;
+
+  try {
+    user.updateContact(email, contact);
+    res.status(200).json({ success: true });
+  } catch (e) {
+    handleError(res, e);
+  }
+};
+
+exports.deleteContact = function (req, res) {
+  var user = req.user;
+  var email = req.params.email;
+
+  try {
+    user.deleteContact(email);
+    res.status(200).json({ success: true });
+  } catch (e) {
+    return handleError(res, e);
+  }
+};
+
+exports.getContacts = function (req, res) {
+  var user = req.user;
+
+  res.status(200).json(user.contacts);
 };

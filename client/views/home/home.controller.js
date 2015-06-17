@@ -6,7 +6,9 @@ angular.module('netcast')
     var vm = this;
 
     angular.extend(vm, {
-      name: 'HomeCtrl'
+      
+      name: 'HomeCtrl',
+
     });
 
   });

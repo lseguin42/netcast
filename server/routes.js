@@ -5,6 +5,7 @@ var config = require('./config/environment');
 module.exports = function (app) {
 
   // API
+  app.use('/api/transactions', require('./api/transaction'));
   app.use('/api/users', require('./api/user'));
 
   // Auth

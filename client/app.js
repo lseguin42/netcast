@@ -15,6 +15,7 @@ angular.module('netcast', [
   })
   .factory('authInterceptor',
   function ($rootScope, $q, $cookieStore, $location) {
+    console.log('authInterceptor');
     return {
 
       request: function (config) {
@@ -39,16 +40,14 @@ angular.module('netcast', [
     };
   })
 
-  .run(function ($rootScope, $location, Auth) {
+  .run(function ($rootScope, $state, Auth) {
 
     $rootScope.Auth = Auth;
 
-    $rootScope.$on('$routeChangeStart', function (event, next) {
-      console.log('change state');
+    $rootScope.$on('$stateChangeStart', function (event, next) {
       Auth.isReadyLogged().catch(function () {
-        if (next.authenticate) {
-          $location.path('/');
-        }
+        if (next.authenticate)
+          $state.go('home');
       });
     });
 

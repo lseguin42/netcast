@@ -18,14 +18,17 @@ angular.module('netcast')
        * Signup
        */
       signup: function () {
+        console.log('signup');
         Auth.signup(vm.user)
           .then(function () {
+            console.log('location');
             $location.path('/');
           })
           .catch(function (err) {
+            console.log('ERROR');
             vm.error = err;
           });
-      }
+      },
 
     });
 
