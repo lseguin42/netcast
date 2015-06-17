@@ -9,5 +9,10 @@ angular.module('netcast')
         templateUrl: 'views/signup/signup.html',
         controller: 'SignupCtrl',
         controllerAs: 'vm',
+        resolve: {
+          notAuth: function(Auth) {
+            return Auth.isReadyNotLogged();
+          }
+        }
       });
   });

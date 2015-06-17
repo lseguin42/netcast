@@ -8,6 +8,11 @@ angular.module('netcast')
       	url: '/login',
         templateUrl: 'views/login/login.html',
         controller: 'LoginCtrl',
-        controllerAs: 'vm'
+        controllerAs: 'vm',
+        resolve: {
+          notAuth: function(Auth) {
+            return Auth.isReadyNotLogged();
+          }
+        }
       });
   });

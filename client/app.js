@@ -45,10 +45,12 @@ angular.module('netcast', [
     $rootScope.Auth = Auth;
 
     $rootScope.$on('$stateChangeStart', function (event, next) {
-      Auth.isReadyLogged().catch(function () {
-        if (next.authenticate)
-          $state.go('home');
-      });
+
+    });
+    
+    $rootScope.$on('$stateChangeError', function (event, toState, toParams, fromState, fromParams, error) {
+      console.log(error);
+      return $state.go('home');
     });
 
   });

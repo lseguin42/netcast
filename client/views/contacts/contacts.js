@@ -9,6 +9,10 @@ angular.module('netcast')
         templateUrl: 'views/contacts/contacts.html',
         controller: 'ContactsCtrl',
         controllerAs: 'vm',
-        authenticate: true,
+        resolve: {
+          auth: function(Auth) {
+            return Auth.isReadyLogged();
+          },
+        }
       });
   });

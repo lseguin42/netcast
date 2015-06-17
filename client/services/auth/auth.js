@@ -64,7 +64,7 @@ angular.module('netcast')
     this.logout = function () {
       $cookieStore.remove('token');
       _user = {};
-      if ($state.current.authenticate)
+      if ($state.current.resolve.auth)
         $state.go('home');
     };
 
@@ -88,7 +88,19 @@ angular.module('netcast')
         if (_user.hasOwnProperty('_id')) {
           def.resolve();
         } else {
-          def.reject();
+          def.reject('not logged');
+        }
+      });
+      return def.promise;
+    };
+
+    this.isReadyNotLogged = function () {
+      var def = $q.defer();
+      _ready.promise.then(function () {
+        if (_user.hasOwnProperty('_id')) {
+          def.reject('you are logged');
+        } else {
+          def.resolve();
         }
       });
       return def.promise;
