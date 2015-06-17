@@ -18,7 +18,7 @@ function handleError (res, err) {
 exports.create = function (req, res) {
   if (req.body.contacts)
     return handleError(res, "contacts given on signup");
-  req.body.contacts = {};
+  req.body.contacts = [];
   User.create(req.body, function (err, user) {
     if (err) { return handleError(res, err); }
     var token = jwt.sign(
@@ -53,8 +53,11 @@ exports.createContact = function (req, res) {
   var contact = req.body;
 
   try {
-    user.addContact(contact);
-    res.status(200).json({ success: true });
+    user.addContact(contact, function (err) {
+      if (err)
+        return handleError(res, err);
+      res.status(200).json({ success: true });
+    });    
   } catch (e) {
     handleError(res, e);
   }
@@ -62,11 +65,15 @@ exports.createContact = function (req, res) {
 
 exports.updateContact = function (req, res) {
   var user = req.user;
-  var email = req.params.email;
-  var contact = req.body;
-
+  var data = req.body;
+  
   try {
-    user.updateContact(email, contact);
+    var selectContact = data.select;
+    var contact = data.contact;
+    user.updateContact(selectContact, contact, function (err) {
+      if (err) return handleError(res, err);
+      res.status(200).json({ success: true });
+    });
     res.status(200).json({ success: true });
   } catch (e) {
     handleError(res, e);
@@ -75,10 +82,11 @@ exports.updateContact = function (req, res) {
 
 exports.deleteContact = function (req, res) {
   var user = req.user;
-  var email = req.params.email;
+  var data = req.body;
 
   try {
-    user.deleteContact(email);
+    var selectContact = data.select;
+    user.deleteContact(selectContact);
     res.status(200).json({ success: true });
   } catch (e) {
     return handleError(res, e);

@@ -10,7 +10,7 @@ var UserSchema = new Schema({
   email: String,
   passwordHash: String,
   salt: String,
-  contacts: {},
+  contacts: [],
 });
 
 /**
@@ -83,56 +83,80 @@ UserSchema.methods = {
     return crypto.pbkdf2Sync(password, salt, 10000, 64).toString('base64');
   },
 
+  haveContact: function (email, fn) {
+    User.findOne({ _id: this._id, 'contacts.email': email }, function (err, user) {
+      console.log(err, user);
+      if (!err && user)
+        return fn(true);
+      fn(false);
+    });
+  },
+
   /**
    * Contacts
    */
 
-  addContact: function (contact) {
+  addContact: function (contact, fn) {
+    var self = this;
     check.object(contact, { email: is.email, nickname: 'string' });
-    var key = contact.email.replace('.', '#');
-    if (!this.contacts)
-      this.contacts = {};
-    if (this.contacts[key])
-      throw 'contact already exists';
-    this.contacts[key] = contact;
-    console.log('new key ==> ', key, 'contact list ==> ', this.contacts);
-    this.save(function (err, obj) {
-      console.log('ERROR => ', err);
-      console.log('OBJ ==> ', obj);
-      User.findOne({_id: obj._id}, function (err, o) {
-        console.log('ERR ====> ', err, 'OBJ2 ==> ', o);
-      })
+    if (!self.contacts)
+      self.contacts = [];
+    self.haveContact(contact.email, function (have) {
+      if (have)
+        return fn('contact already exists');
+      self.contacts.push(contact);
+      self.save(function (err, user) {
+        if (err) return fn(err);
+        fn();
+      });
     });
   },
 
-  deleteContact: function (email) {
-    if (!is.email(email))
-      throw 'isn\'t an email';
-    var key = email.replace('.', '#');
-    if (!this.contacts[key])
-      throw 'contact not exists';
-    delete this.contacts[key];
-    this.save();
+  deleteContact: function (selectContact, fn) {
+    var self = this;
+    check.object(selectContact, { index: 'number', email: is.email });
+    var id = selectContact.index;
+    var email = selectContact.email;
+    if (!self.user.contacts[id])
+      return fn('contact id not exists');
+    if (self.user.contacts[id].email !== email)
+      return fn('contact email not equals');
+    self.user.contacts.splice(id, 1);
+    self.save(function (err, user) {
+      if (err) return fn(err);
+      fn();
+    });
   },
 
-  updateContact: function (email, contact) {
-    if (!is.email(email))
-        throw 'isn\'t an email';
-    check.object(contact, { email: is.email, nickname: 'string' });
-    var key = email.replace('.', '#');
-    if (!this.contacts[key])
-        throw 'contact not exists';
-    if (contact.email !== email)
+  updateContact: function (selectContact, newContact, fn) {
+    var self = this;
+    check.object(selectContact, { index: 'number', email: is.email });
+    check.object(newContact, { email: is.email, nickname: 'string' });
+    var id = selectContact.index;
+    var email = selectContact.email;
+    if (!self.contacts || !self.contacts[id])
+      return fn('contact not exists');
+    if (selectContact.email !== self.contacts[id].email)
+      return fn('contact email not equals');
+    if (email !== newContact.email)
     {
-      var key2 = contact.email.replace('.', '#');
-      if (this.contacts[key2])
-        throw 'contact already exists';
-      delete this.contacts[key];
-      this.contacts[key2] = contact;
+      self.haveContact(newContact.email, function (have) {
+        if (have)
+          return fn('contact already exists');
+        self.user.contacts.splice(id, 1);
+        self.user.contacts.push(newContact);
+        self.save(function (err, user) {
+          if (err) return fn(err);
+          fn();
+        });
+      });
+      return ;
     }
-    else
-      this.contacts[key].nickname = contact.nickname;
-    this.save();
+    self.contacts[id].nickname = newContact.nickname;
+    self.save(function (err, user) {
+      if (err) return fn(err);
+      return err;
+    });
   },
 
 };

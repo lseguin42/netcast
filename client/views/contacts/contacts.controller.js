@@ -21,7 +21,7 @@ angular.module('netcast')
       	$http.put('/api/users/me/contacts/', contact)
       		.success(function () {
       			console.log('new contact added');
-      			vm.contacts[contact.email] = contact;
+      			vm.contacts.push(contact);
       		})
       		.error(function () {
       			console.log('fail add new contact');
