@@ -49,6 +49,7 @@ angular.module('netcast')
       $http.post('/auth/local', user)
         .then(function (res) {
           _user = res.data.user;
+          $rootScope.$emit('userDidLogin', _user);
           $cookieStore.put('token', res.data.token);
           deferred.resolve();
         })
@@ -64,6 +65,7 @@ angular.module('netcast')
     this.logout = function () {
       $cookieStore.remove('token');
       _user = {};
+      $rootScope.$emit('userDidLogout');
       if ($state.current.resolve.auth)
         $state.go('home');
     };

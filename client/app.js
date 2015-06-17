@@ -40,7 +40,7 @@ angular.module('netcast', [
     };
   })
 
-  .run(function ($rootScope, $state, Auth) {
+  .run(function ($rootScope, $state, Auth, User) {
 
     $rootScope.Auth = Auth;
 
