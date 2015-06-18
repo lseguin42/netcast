@@ -18,6 +18,8 @@ angular.module('netcast')
           event.preventDefault();
           element.removeClass('over');
           SingleFileList.importList(event.dataTransfer.files);
+          /* DOM event */
+          scope.$apply();
         });
       }
     };

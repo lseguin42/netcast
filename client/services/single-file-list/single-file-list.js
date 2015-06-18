@@ -4,6 +4,10 @@ angular.module('netcast')
   .service('SingleFileList', function () {
     var files = [];
     
+    this.getFiles = function() {
+      return files;
+    };
+    
     this.add = function(file) {
       files.push(file);
     };
