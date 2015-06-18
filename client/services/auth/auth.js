@@ -64,7 +64,7 @@ angular.module('netcast')
     this.logout = function () {
       $cookieStore.remove('token');
       _user = {};
-      if ($state.current.resolve.auth)
+      if ($state.current.resolve && $state.current.resolve.auth)
         $state.go('home');
     };
 
