@@ -6,8 +6,6 @@ angular.module('netcast')
   	var user = Auth.getUser();
     var vm = this;
 
-    console.log(user);
-
     angular.extend(vm, {
 
       name: 'ContactsCtrl',
@@ -19,8 +17,8 @@ angular.module('netcast')
       addContact: function () {
       	var contact = { email: vm.contact.email, nickname: vm.contact.nickname };
       	$http.put('/api/users/me/contacts/', contact)
-      		.success(function () {
-      			console.log('new contact added');
+      		.success(function (res) {
+      			console.log(res);
       			vm.contacts.push(contact);
       		})
       		.error(function () {

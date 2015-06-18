@@ -12,6 +12,7 @@ router.post('/', function (req, res, next) {
     if (error) { return res.status(401).json(error); }
     if (!user) { return res.status(401).json({ msg: 'login failed' }); }
     var token = auth.signToken(user._id);
+    res.set('Update-Checksum', user.checksum);
     res.json({ token: token, user: user });
   })(req, res, next);
 });

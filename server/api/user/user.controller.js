@@ -9,6 +9,15 @@ function handleError (res, err) {
   return res.status(500).send(err);
 }
 
+function randomStr(len) {
+  var str = "0123456789abcdebf";
+  var text = "";
+  
+  for(var i=0; i < len; i++)
+    text += str.charAt(Math.floor(Math.random() * str.length));
+  return text;
+}
+
 /**
  * Creates a new user in the DB.
  *
@@ -19,6 +28,8 @@ exports.create = function (req, res) {
   if (req.body.contacts)
     return handleError(res, "contacts given on signup");
   req.body.contacts = [];
+  req.body.checksum = randomStr(32);
+  console.log(req.body);
   User.create(req.body, function (err, user) {
     if (err) { return handleError(res, err); }
     var token = jwt.sign(
@@ -26,6 +37,7 @@ exports.create = function (req, res) {
       config.secrets.session,
       { expiresInMinutes: 60 * 5 }
     );
+    res.set('Update-Checksum', user.checksum);
     res.status(201).json({ token: token, user: user });
   });
 };
@@ -43,7 +55,7 @@ exports.getMe = function (req, res) {
   }, '-salt -passwordHash', function (err, user) {
     if (err) { return handleError(res, err); }
     if (!user) { return res.json(401); }
-    console.log(user);
+    res.set('Update-Checksum', user.checksum);
     res.status(200).json(user);
   });
 };
@@ -56,8 +68,9 @@ exports.createContact = function (req, res) {
     user.addContact(contact, function (err) {
       if (err)
         return handleError(res, err);
+      res.set('Update-Checksum', user.checksum);
       res.status(200).json({ success: true });
-    });    
+    });
   } catch (e) {
     handleError(res, e);
   }
@@ -65,16 +78,16 @@ exports.createContact = function (req, res) {
 
 exports.updateContact = function (req, res) {
   var user = req.user;
-  var data = req.body;
+  var index = req.params.index;
+  var contact = req.body;
   
   try {
-    var selectContact = data.select;
-    var contact = data.contact;
-    user.updateContact(selectContact, contact, function (err) {
-      if (err) return handleError(res, err);
+    user.updateContact(index, contact, function (err) {
+      if (err)
+        return handleError(res, err);
+      res.set('Update-Checksum', user.checksum);
       res.status(200).json({ success: true });
     });
-    res.status(200).json({ success: true });
   } catch (e) {
     handleError(res, e);
   }
@@ -82,12 +95,16 @@ exports.updateContact = function (req, res) {
 
 exports.deleteContact = function (req, res) {
   var user = req.user;
-  var data = req.body;
+  var index = req.params.index;
+  var contact = req.body;
 
   try {
-    var selectContact = data.select;
-    user.deleteContact(selectContact);
-    res.status(200).json({ success: true });
+    user.deleteContact(index, function (err) {
+      if (err)
+        return handleError(res, err);
+      res.set('Update-Checksum', user.checksum);
+      res.status(200).json({ success: true });
+    });
   } catch (e) {
     return handleError(res, e);
   }
@@ -96,5 +113,6 @@ exports.deleteContact = function (req, res) {
 exports.getContacts = function (req, res) {
   var user = req.user;
 
-  res.status(200).json(user.contacts);
+  res.set('Update-Checksum', user.checksum);
+  res.status(200).json({ contacts: user.contacts });
 };

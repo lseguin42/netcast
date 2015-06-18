@@ -11,11 +11,12 @@ angular.module('netcast', [
 
     $locationProvider.html5Mode(true);
     $httpProvider.interceptors.push('authInterceptor');
+    $httpProvider.interceptors.push('checksumInterceptor');
 
   })
+
   .factory('authInterceptor',
   function ($rootScope, $q, $cookieStore, $location) {
-    console.log('authInterceptor');
     return {
 
       request: function (config) {
@@ -35,6 +36,36 @@ angular.module('netcast', [
         else {
           return $q.reject(response);
         }
+      }
+
+    };
+  })
+
+  .factory('checksumInterceptor',
+  function ($q, $cookieStore) {
+
+    return {
+
+      request: function (config) {
+        config.headers = config.headers || {};
+        var checksum = $cookieStore.get('checksum');
+        if (checksum) {
+          config.headers.checksum = checksum;
+        }
+        return config;
+      },
+
+      response: function (response) {
+        var checksum = response.headers('update-checksum');
+        if (checksum)
+          $cookieStore.put('checksum', checksum);
+        return response;
+      },
+
+      responseError: function (response) {
+        if (response.status === 409)
+          console.log('require update contacts (checksum is invalid)');
+        return $q.reject(response);
       }
 
     };

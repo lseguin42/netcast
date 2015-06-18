@@ -11,6 +11,7 @@ var UserSchema = new Schema({
   passwordHash: String,
   salt: String,
   contacts: [],
+  checksum: String,
 });
 
 /**
@@ -92,6 +93,11 @@ UserSchema.methods = {
     });
   },
 
+  updateContactChecksum: function (chunk) {
+    var str = chunk + Date.now() + this.checksum ;
+    this.checksum = crypto.createHash('md5').update(str).digest('hex');
+  },
+
   /**
    * Contacts
    */
@@ -105,6 +111,7 @@ UserSchema.methods = {
       if (have)
         return fn('contact already exists');
       self.contacts.push(contact);
+      self.updateContactChecksum('add' + (self.contacts.length - 1));
       self.save(function (err, user) {
         if (err) return fn(err);
         fn();
@@ -112,51 +119,39 @@ UserSchema.methods = {
     });
   },
 
-  deleteContact: function (selectContact, fn) {
+  deleteContact: function (index, fn) {
     var self = this;
-    check.object(selectContact, { index: 'number', email: is.email });
-    var id = selectContact.index;
-    var email = selectContact.email;
-    if (!self.user.contacts[id])
+    if (!self.contacts || !self.contacts[index])
       return fn('contact id not exists');
-    if (self.user.contacts[id].email !== email)
-      return fn('contact email not equals');
-    self.user.contacts.splice(id, 1);
+    self.contacts.splice(index, 1);
+    self.updateContactChecksum('delete' + index);
     self.save(function (err, user) {
       if (err) return fn(err);
       fn();
     });
   },
 
-  updateContact: function (selectContact, newContact, fn) {
+  updateContact: function (index, newContact, fn) {
     var self = this;
-    check.object(selectContact, { index: 'number', email: is.email });
     check.object(newContact, { email: is.email, nickname: 'string' });
-    var id = selectContact.index;
-    var email = selectContact.email;
-    if (!self.contacts || !self.contacts[id])
+    if (!self.contacts || !self.contacts[index])
       return fn('contact not exists');
-    if (selectContact.email !== self.contacts[id].email)
-      return fn('contact email not equals');
-    if (email !== newContact.email)
-    {
-      self.haveContact(newContact.email, function (have) {
-        if (have)
-          return fn('contact already exists');
-        self.user.contacts.splice(id, 1);
-        self.user.contacts.push(newContact);
-        self.save(function (err, user) {
-          if (err) return fn(err);
-          fn();
-        });
+    var update = function () {
+      self.contacts[index] = newContact;
+      self.updateContactChecksum('update' + index);
+      self.save(function (err, user) {
+        if (err) return fn(err);
+        fn();
       });
-      return ;
     }
-    self.contacts[id].nickname = newContact.nickname;
-    self.save(function (err, user) {
-      if (err) return fn(err);
-      return err;
-    });
+    if (self.contacts[index].email !== newContact.email)
+      self.haveContact(newContact.email, function (have) {
+        if (have) return fn('contact already exists');
+        update();
+      });
+    else
+      update();
+    
   },
 
 };
