@@ -11,7 +11,7 @@ var UserSchema = new Schema({
   passwordHash: String,
   salt: String,
   contacts: [],
-  checksum: String,
+  version: Number,
 });
 
 /**
@@ -93,9 +93,8 @@ UserSchema.methods = {
     });
   },
 
-  updateContactChecksum: function (chunk) {
-    var str = chunk + Date.now() + this.checksum ;
-    this.checksum = crypto.createHash('md5').update(str).digest('hex');
+  updateContactVersion: function () {
+    this.version++;
   },
 
   /**
@@ -111,7 +110,7 @@ UserSchema.methods = {
       if (have)
         return fn('contact already exists');
       self.contacts.push(contact);
-      self.updateContactChecksum('add' + (self.contacts.length - 1));
+      self.updateContactVersion();
       self.save(function (err, user) {
         if (err) return fn(err);
         fn();
@@ -124,7 +123,7 @@ UserSchema.methods = {
     if (!self.contacts || !self.contacts[index])
       return fn('contact id not exists');
     self.contacts.splice(index, 1);
-    self.updateContactChecksum('delete' + index);
+    self.updateContactVersion();
     self.save(function (err, user) {
       if (err) return fn(err);
       fn();
@@ -138,7 +137,7 @@ UserSchema.methods = {
       return fn('contact not exists');
     var update = function () {
       self.contacts[index] = newContact;
-      self.updateContactChecksum('update' + index);
+      self.updateContactVersion();
       self.save(function (err, user) {
         if (err) return fn(err);
         fn();

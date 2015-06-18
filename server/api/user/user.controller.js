@@ -9,15 +9,6 @@ function handleError (res, err) {
   return res.status(500).send(err);
 }
 
-function randomStr(len) {
-  var str = "0123456789abcdebf";
-  var text = "";
-  
-  for(var i=0; i < len; i++)
-    text += str.charAt(Math.floor(Math.random() * str.length));
-  return text;
-}
-
 /**
  * Creates a new user in the DB.
  *
@@ -28,7 +19,7 @@ exports.create = function (req, res) {
   if (req.body.contacts)
     return handleError(res, "contacts given on signup");
   req.body.contacts = [];
-  req.body.checksum = randomStr(32);
+  req.body.version = 0;
   console.log(req.body);
   User.create(req.body, function (err, user) {
     if (err) { return handleError(res, err); }
@@ -37,7 +28,7 @@ exports.create = function (req, res) {
       config.secrets.session,
       { expiresInMinutes: 60 * 5 }
     );
-    res.set('Update-Checksum', user.checksum);
+    res.set('Update-Version', user.version);
     res.status(201).json({ token: token, user: user });
   });
 };
@@ -55,7 +46,7 @@ exports.getMe = function (req, res) {
   }, '-salt -passwordHash', function (err, user) {
     if (err) { return handleError(res, err); }
     if (!user) { return res.json(401); }
-    res.set('Update-Checksum', user.checksum);
+    res.set('Update-Version', user.version);
     res.status(200).json(user);
   });
 };
@@ -68,7 +59,7 @@ exports.createContact = function (req, res) {
     user.addContact(contact, function (err) {
       if (err)
         return handleError(res, err);
-      res.set('Update-Checksum', user.checksum);
+      res.set('Update-Version', user.version);
       res.status(200).json({ success: true });
     });
   } catch (e) {
@@ -85,7 +76,7 @@ exports.updateContact = function (req, res) {
     user.updateContact(index, contact, function (err) {
       if (err)
         return handleError(res, err);
-      res.set('Update-Checksum', user.checksum);
+      res.set('Update-Version', user.version);
       res.status(200).json({ success: true });
     });
   } catch (e) {
@@ -102,7 +93,7 @@ exports.deleteContact = function (req, res) {
     user.deleteContact(index, function (err) {
       if (err)
         return handleError(res, err);
-      res.set('Update-Checksum', user.checksum);
+      res.set('Update-Version', user.version);
       res.status(200).json({ success: true });
     });
   } catch (e) {
@@ -113,6 +104,6 @@ exports.deleteContact = function (req, res) {
 exports.getContacts = function (req, res) {
   var user = req.user;
 
-  res.set('Update-Checksum', user.checksum);
+  res.set('Update-Version', user.version);
   res.status(200).json({ contacts: user.contacts });
 };
