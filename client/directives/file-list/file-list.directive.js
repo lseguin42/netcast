@@ -5,7 +5,8 @@ angular.module('netcast')
     return {
       restrict: 'E',
       scope: {
-        files: '='
+        files: '=',
+        remove: '='
       },
       templateUrl: 'directives/file-list/file-list.html'
     };

@@ -16,6 +16,10 @@ angular.module('netcast')
       files.push.apply(files, list);
     };
     
+    this.remove = function(index) {
+      files.splice(index, 1);
+    };
+    
     this.flush = function() {
       files = [];
     };

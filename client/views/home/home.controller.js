@@ -12,4 +12,5 @@ angular.module('netcast')
     });
 
     $scope.files = SingleFileList.getFiles();
+    $scope.remove = SingleFileList.remove;
   });
