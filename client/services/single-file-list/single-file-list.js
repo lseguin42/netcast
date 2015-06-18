@@ -10,7 +10,6 @@ angular.module('netcast')
     
     this.importList = function(list) {
       files.push.apply(files, list);
-      console.log(files);
     };
     
     this.flush = function() {
