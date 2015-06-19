@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('netcast')
-  .service('SingleFileList', function () {
+  .service('SingleFileList', function ($rootScope) {
     var files = [];
     
     this.getFiles = function() {
@@ -9,11 +9,24 @@ angular.module('netcast')
     };
     
     this.add = function(file) {
-      files.push(file);
+      var reader = new FileReader();
+      reader.onload = function() {
+        files.push(file);
+        $rootScope.$apply();
+        
+        reader.onerror = null;
+        reader.abort();
+      };
+      reader.onerror = function() {
+        alert('Unable to add "' + file.name + '".');
+      };
+      reader.readAsArrayBuffer(file);
     };
     
     this.importList = function(list) {
-      files.push.apply(files, list);
+      var len = list.length;
+      for (var i = 0; i < len; i++)
+        this.add(list[i]);
     };
     
     this.remove = function(index) {
